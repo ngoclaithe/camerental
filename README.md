@@ -1,21 +1,18 @@
-# Camerental - Hệ Thống Quản Lý Cho Thuê Thiết Bị Nhiếp Ảnh
+# Camerental - Phần Mềm Quản Lý Cho Thuê Máy Ảnh
 
-Camerental là một hệ thống toàn diện được thiết kế để quản lý kho thiết bị, đơn hàng, khách hàng và lịch trình di chuyển của các thiết bị nhiếp ảnh/quay phim cho thuê một cách chuyên nghiệp và trực quan.
+Camerental giúp các cửa hàng hoặc cá nhân cho thuê thiết bị như máy ảnh, ống kính quản lý công việc hàng ngày một cách dễ dàng, nhanh chóng và không lo thất thoát hay nhầm lẫn lịch.
 
-## Các Tính Năng Nổi Bật
+## Các chức năng chính
 
-### 1. Dành cho Khách (Guest View)
-*   **Trang Danh mục Thiết bị:** Hiển thị danh sách thiết bị cho thuê công khai với giao diện hiện đại (glassmorphism), kèm theo giá thuê và trạng thái thực (Sẵn sàng, Đang thuê, Bảo trì).
-*   **Tìm kiếm & Lọc:** Hỗ trợ người dùng tra cứu nhanh chóng các loại máy ảnh, ống kính theo tên hoặc danh mục.
+### 1. Giao diện xem thiết bị (Dành cho Khách hàng)
+*   **Xem danh sách thiết bị:** Khách có thể xem trực tuyến danh sách các máy ảnh, đồ nghề cửa hàng đang cho thuê với hình ảnh và giá cả rõ ràng.
+*   **Biết máy nào đang rảnh:** Nhìn từ ngoài khách sẽ biết ngay món đồ nào đã có khách thuê, và đồ nào đang sẵn sàng ở tiệm.
 
-### 2. Quản Trị Hệ Thống (Admin/Staff Control)
-*   **Xác thực Bảo mật (Login):** Đăng nhập an toàn phân quyền (Admin, Manager, Staff). Hỗ trợ tính năng "Duy trì đăng nhập" (chuyển đổi giữa Local Storage và Session Storage linh hoạt) kèm tùy chọn ẩn/hiện mật khẩu.
-*   **Dashboard Tổng Quan:** Hiển thị nhanh các KPIs quan trọng theo thời gian thực: Doanh thu hôm nay (chỉ tính đơn đã thanh toán/hoàn tất), Số đơn đang chạy, Số máy sẵn sàng, Biểu đồ doanh thu trong 7 ngày, và lịch sử hoạt động mới nhất.
-*   **Lịch Thuê Hiện Đại & Gantt Chart (Trực quan hóa thiết bị):**
-    *   **Lịch Thuê Chi Tiết:** Xem danh sách thiết bị vướng lịch theo từng ngày.
-    *   **Biểu đồ Gantt:** Biểu diễn trục thời gian theo tháng (dạng thanh mốc), dễ dàng bao quát máy nào đang trống, máy nào có người thuê từ ngày A đến ngày B, màu sắc phân biệt rõ ràng từng trạng thái đơn.
-*   **Quản Lý Đơn Hàng (Orders):** Quy trình tạo mới đơn chuyên nghiệp (chọn thời gian -> chọn khách -> hệ thống tự tính giá trị và tiền cọc). Theo dõi theo luồng trạng thái từ Nháp -> Đã Xác Nhận -> Đang Thuê -> Trễ Hạn / Hoàn Tất.
-*   **Quản Lý Thiết Bị (Equipments):** Quản lý kho máy ảnh/lens chi tiết tới từng mã series, gắn hình ảnh trực quan và giá thuê/ngày.
-*   **Hồ Sơ Khách Hàng (Customers):** Nâng cấp lưu trữ thông tin nhận diện người thuê (upload được hình ảnh CCCD, GPLX, hộ chiếu hai mặt). Giúp quản trị rủi ro chống mất mát thiết bị.
-*   **Báo Cáo & Thống Kê (Reports):** Đi sâu vào phân tích tài chính (biểu đồ doanh thu hàng tháng), đo lường tỷ lệ lấp đầy lịch, tính toán tăng trưởng (%) so với chu kỳ trước.
-*   **Quản Lý Người Dùng & Phân Quyền (Users):** Admin có quyền thêm sửa tài khoản nhân viên, cấp phát roles để tối ưu vận hành công việc.
+### 2. Quản lý cửa hàng (Dành cho Chủ tiệm & Nhân viên)
+*   **Bảng thống kê ngay khi mở máy:** Xem tóm tắt nhanh gọn hôm nay thu được bao nhiêu tiền, đang có bao nhiêu máy cho thuê ở bên ngoài, bao nhiêu người đang đặt chờ lấy máy.
+*   **Lịch đặt máy thông minh (Biểu đồ thời gian):** Nhìn bao quát lịch sử dụng máy cả tháng, món nào đang cầm đi ngày nào, của ai thuê đều hiện rõ như một tờ lịch điện tử, vô cùng trực quan.
+*   **Quản lý Đơn thuê đồ:** Tạo đơn mượn máy rất nhanh, khi nhập thông tin phần mềm sẽ tự tính trước tiền cọc, số ngày thuê, tiền tổng bao nhiêu. Rất tiện để theo dõi khách có trả trễ hạn không.
+*   **Quản lý Kho máy ảnh:** Ghi lại được thông tin danh sách sản phẩm cửa hàng đang có, nhập cả hình ảnh và giá để khách mượn.
+*   **Lưu hồ sơ khách đến thuê:** Ghi nhận và chụp lưu lại hình ảnh giấy tờ (Căn cước / Bằng lái xe) rất tiện và an toàn, phòng chống rủi ro mất đồ do người lạ.
+*   **Báo cáo Doanh thu kinh doanh:** Xem tổng kết tiền theo ngày và theo tháng dễ hiểu để biết tháng này làm ăn có tốt hơn tháng trước hay không.
+*   **Phân quyền Quản lý & Nhân viên:** Chủ tiệm tự chia quyền hạn rạch ròi. Mình có thể xem tất cả nhưng nhân viên chỉ được tạo đơn và theo dõi lịch.
