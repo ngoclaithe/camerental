@@ -10,11 +10,13 @@ import UsersPage from './components/UsersPage';
 import GuidesPage from './components/GuidesPage';
 import Reports from './components/Reports';
 import Login from './components/Login';
+import GuestPage from './components/GuestPage';
 import { useStore } from '../store/useStore';
 
 type View = 'dashboard' | 'calendar' | 'create' | 'orders' | 'equipments' | 'customers' | 'users' | 'reports' | 'guides';
 
 export default function App() {
+  const [showLogin, setShowLogin] = useState(false);
   const [currentView, setCurrentView] = useState<View>(() => {
     if (typeof window !== 'undefined') {
       return (localStorage.getItem('camerental_current_view') as View) || 'dashboard';
@@ -28,7 +30,10 @@ export default function App() {
   const user = useStore((state) => state.user);
 
   if (!user) {
-    return <Login />;
+    if (showLogin) {
+      return <Login onBack={() => setShowLogin(false)} />;
+    }
+    return <GuestPage onLoginClick={() => setShowLogin(true)} />;
   }
 
   const renderView = () => {

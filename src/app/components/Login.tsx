@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { LogIn, Key, Mail, Camera, ShieldCheck, ArrowRight, Check } from 'lucide-react';
+import { LogIn, Key, Mail, Camera, ShieldCheck, ArrowRight, Check, EyeOff, Eye } from 'lucide-react';
 import { authApi } from '../../api';
 import { useStore } from '../../store/useStore';
 import { toast } from 'sonner';
 
-export default function Login() {
+export default function Login({ onBack }: { onBack?: () => void }) {
     const [email, setEmail] = useState('admin@camrent.pro');
     const [password, setPassword] = useState('admin123');
+    const [showPassword, setShowPassword] = useState(false);
+    const [keepLoggedIn, setKeepLoggedIn] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const setUser = useStore((state) => state.setUser);
@@ -17,10 +19,9 @@ export default function Login() {
         setError('');
         try {
             const response = await authApi.login(email, password);
+            sessionStorage.setItem('prefer_session', keepLoggedIn ? 'false' : 'true');
             setUser(response.user);
-            toast.success('Đăng nhập thành công', {
-                description: 'Chào mừng trở lại bảng điều khiển.',
-            });
+
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.';
             setError(errorMsg);
@@ -40,26 +41,16 @@ export default function Login() {
                 <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-[100px]" />
 
                 <div className="relative z-10 max-w-2xl text-white">
-                    <div className="w-24 h-24 rounded-[32px] bg-slate-900 flex items-center justify-center mb-12 shadow-[0_32px_80px_rgba(0,0,0,0.15)] group hover:rotate-6 transition-all duration-700">
-                        <Camera className="w-12 h-12 text-[#2563EB]" />
+                    <div className="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center mb-12 shadow-[0_32px_80px_rgba(0,0,0,0.15)] overflow-hidden group hover:rotate-6 transition-all duration-700">
+                        <img src="/images/camerental.png" alt="Camerental Logo" className="w-full h-full object-cover" />
                     </div>
-                    <h1 className="text-8xl font-black tracking-tighter leading-[0.85] mb-8 uppercase">
-                        CAMRENT<br />
-                        <span className="text-blue-200">PRO 3.0</span>
+                    <h1 className="text-7xl font-black tracking-tighter leading-[0.85] mb-8">
+                        Camerental<br />
+                        <span className="text-blue-200">Pro 3.0</span>
                     </h1>
                     <p className="text-2xl font-black text-blue-50/70 leading-relaxed mb-12 uppercase tracking-tight">
-                        Hệ thống quản lý cho thuê thiết bị nhiếp ảnh thông minh, chuyên nghiệp và bảo mật nhất hiện nay.
+                        Hệ thống quản lý cho thuê thiết bị nhiếp ảnh thông minh, chuyên nghiệp.
                     </p>
-                    <div className="grid grid-cols-2 gap-8">
-                        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-2xl p-6 rounded-[28px] border border-white/15 shadow-xl">
-                            <ShieldCheck className="w-7 h-7 text-blue-200" />
-                            <span className="text-xs font-black uppercase tracking-[0.2em]">BẢO MẬT ĐA TẦNG</span>
-                        </div>
-                        <div className="flex items-center gap-4 bg-white/10 backdrop-blur-2xl p-6 rounded-[28px] border border-white/15 shadow-xl">
-                            <Key className="w-7 h-7 text-blue-200" />
-                            <span className="text-xs font-black uppercase tracking-[0.2em]">XÁC THỰC HIỆN ĐẠI</span>
-                        </div>
-                    </div>
                 </div>
                 <div className="absolute bottom-12 left-12 text-[10px] font-black uppercase tracking-[0.5em] text-white/40">MASTER COMMAND CENTER • v3.0.4</div>
             </div>
@@ -68,7 +59,14 @@ export default function Login() {
             <div className="flex-1 flex items-center justify-center p-8 sm:p-16 lg:p-24 bg-[#0F172A] relative">
                 <div className="w-full max-w-md space-y-12 relative z-10">
                     <div className="text-center lg:text-left space-y-4">
-                        <div className="lg:hidden w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black mx-auto mb-8 shadow-xl">C</div>
+                        {onBack && (
+                            <button onClick={onBack} className="absolute -top-16 lg:-top-24 left-0 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-colors">
+                                <ArrowRight className="w-4 h-4 rotate-180" /> QUAY LẠI TRANG CHỦ
+                            </button>
+                        )}
+                        <div className="lg:hidden w-16 h-16 rounded-full overflow-hidden mx-auto mb-8 shadow-xl">
+                            <img src="/images/camerental.png" alt="Camerental Logo" className="w-full h-full object-cover" />
+                        </div>
                         <h2 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">MỪNG TRỞ LẠI!</h2>
                         <p className="text-sm font-black text-slate-500 uppercase tracking-widest leading-loose">Truy cập hệ thống điều hành để bắt đầu ngày làm việc mới.</p>
                     </div>
@@ -100,25 +98,36 @@ export default function Login() {
                             <div className="relative group">
                                 <Key className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400 group-focus-within:text-[#2563EB] transition-all" />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full pl-16 pr-8 py-6 bg-slate-900 border-none rounded-[28px] focus:outline-none focus:ring-4 focus:ring-blue-100/10 transition-all font-black text-lg placeholder:text-slate-700 tracking-widest text-white"
+                                    className="w-full pl-16 pr-14 py-6 bg-slate-900 border-none rounded-[28px] focus:outline-none focus:ring-4 focus:ring-blue-100/10 transition-all font-black text-lg placeholder:text-slate-700 tracking-widest text-white"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors p-2"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
                         </div>
 
                         <div className="flex items-center justify-between px-2">
                             <label className="flex items-center gap-3 cursor-pointer group">
                                 <div className="relative flex items-center">
-                                    <input type="checkbox" className="peer w-5 h-5 rounded-lg border-2 border-slate-700 text-[#2563EB] focus:ring-0 appearance-none bg-slate-900 transition-all checked:bg-blue-600 checked:border-blue-600" />
+                                    <input
+                                        type="checkbox"
+                                        checked={keepLoggedIn}
+                                        onChange={(e) => setKeepLoggedIn(e.target.checked)}
+                                        className="peer w-5 h-5 rounded-lg border-2 border-slate-700 text-[#2563EB] focus:ring-0 appearance-none bg-slate-900 transition-all checked:bg-blue-600 checked:border-blue-600"
+                                    />
                                     <Check className="absolute w-3.5 h-3.5 text-white left-0.5 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none stroke-[4]" />
                                 </div>
                                 <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest group-hover:text-slate-300">DUY TRÌ ĐĂNG NHẬP</span>
                             </label>
-                            <button type="button" className="text-[11px] font-black text-[#2563EB] hover:text-blue-700 uppercase tracking-widest decoration-2 underline-offset-4">QUÊN MẬT KHẨU?</button>
                         </div>
 
                         <button
@@ -132,7 +141,7 @@ export default function Login() {
                     </form>
 
                     <div className="pt-12 text-center text-slate-700 text-[10px] font-black uppercase tracking-[0.5em] border-t border-slate-800">
-                        © 2026 CAMRENT PRO • SMART MANAGEMENT HUB
+                        © 2026 Camerental Pro • SMART MANAGEMENT HUB
                     </div>
                 </div>
             </div>

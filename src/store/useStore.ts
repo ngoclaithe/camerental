@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 
 interface User {
     id: string;
@@ -14,6 +14,25 @@ interface AppState {
     clearUser: () => void;
 }
 
+const customStorage: StateStorage = {
+    getItem: (name: string): string | null => {
+        return localStorage.getItem(name) || sessionStorage.getItem(name) || null;
+    },
+    setItem: (name: string, value: string): void => {
+        if (sessionStorage.getItem('prefer_session') === 'true') {
+            sessionStorage.setItem(name, value);
+            localStorage.removeItem(name);
+        } else {
+            localStorage.setItem(name, value);
+            sessionStorage.removeItem(name);
+        }
+    },
+    removeItem: (name: string): void => {
+        localStorage.removeItem(name);
+        sessionStorage.removeItem(name);
+    }
+};
+
 export const useStore = create<AppState>()(
     persist(
         (set) => ({
@@ -23,7 +42,7 @@ export const useStore = create<AppState>()(
         }),
         {
             name: 'camrent-storage',
-            storage: createJSONStorage(() => localStorage),
+            storage: createJSONStorage(() => customStorage),
         }
     )
 );

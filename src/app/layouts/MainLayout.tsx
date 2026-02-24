@@ -34,17 +34,19 @@ export default function MainLayout({ children, currentView, setCurrentView }: Ma
         }
     };
 
-    const navigation = [
-        { id: 'dashboard', label: 'THỐNG KÊ', icon: LayoutDashboard },
-        { id: 'calendar', label: 'LỊCH THUÊ', icon: Calendar },
-        { id: 'create', label: 'TẠO ĐƠN', icon: Plus },
-        { id: 'orders', label: 'ĐƠN HÀNG', icon: FileText },
-        { id: 'equipments', label: 'THIẾT BỊ', icon: Camera },
-        { id: 'customers', label: 'KHÁCH HÀNG', icon: Users },
-        { id: 'users', label: 'TÀI KHOẢN', icon: UserCog },
-        { id: 'reports', label: 'BÁO CÁO', icon: BarChart3 },
-        { id: 'guides', label: 'HƯỚNG DẪN', icon: BookOpen },
+    const allNavigation = [
+        { id: 'dashboard', label: 'THỐNG KÊ', icon: LayoutDashboard, roles: ['ADMIN', 'MANAGER'] },
+        { id: 'calendar', label: 'LỊCH THUÊ', icon: Calendar, roles: ['ADMIN', 'MANAGER', 'STAFF'] },
+        { id: 'create', label: 'TẠO ĐƠN', icon: Plus, roles: ['ADMIN', 'MANAGER', 'STAFF'] },
+        { id: 'orders', label: 'ĐƠN HÀNG', icon: FileText, roles: ['ADMIN', 'MANAGER', 'STAFF'] },
+        { id: 'equipments', label: 'THIẾT BỊ', icon: Camera, roles: ['ADMIN', 'MANAGER'] },
+        { id: 'customers', label: 'KHÁCH HÀNG', icon: Users, roles: ['ADMIN', 'MANAGER', 'STAFF'] },
+        { id: 'users', label: 'TÀI KHOẢN', icon: UserCog, roles: ['ADMIN'] },
+        { id: 'reports', label: 'BÁO CÁO', icon: BarChart3, roles: ['ADMIN'] },
+        { id: 'guides', label: 'HƯỚNG DẪN', icon: BookOpen, roles: ['ADMIN', 'MANAGER', 'STAFF'] },
     ];
+
+    const navigation = allNavigation.filter(item => item.roles.includes(user?.role || 'STAFF'));
 
     return (
         <div className="min-h-screen bg-[#0F172A] text-slate-100 selection:bg-blue-500/30">
@@ -62,10 +64,12 @@ export default function MainLayout({ children, currentView, setCurrentView }: Ma
                     </button>
 
                     <div className={`flex h-24 items-center gap-4 px-8 border-b border-slate-800 overflow-hidden ${sidebarCollapsed ? 'justify-center px-0' : ''}`}>
-                        <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-[22px] bg-gradient-to-br from-blue-600 to-indigo-700 shadow-xl shadow-blue-500/30 font-black text-white text-2xl">C</div>
+                        <div className="flex-shrink-0 w-12 h-12 rounded-full shadow-xl shadow-blue-500/30 overflow-hidden">
+                            <img src="/images/camerental.png" alt="Camerental Logo" className="w-full h-full object-cover" />
+                        </div>
                         {!sidebarCollapsed && (
                             <div className="animate-in fade-in duration-500">
-                                <h1 className="text-xl font-black tracking-tight text-white uppercase">Camrent Pro</h1>
+                                <h1 className="text-xl font-black tracking-tight text-white uppercase">Camerental</h1>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5 opacity-70">MASTER CONTROL</p>
                             </div>
                         )}
@@ -109,18 +113,16 @@ export default function MainLayout({ children, currentView, setCurrentView }: Ma
                                 {!sidebarCollapsed && (
                                     <div className="flex-1 min-w-0 text-left animate-in fade-in duration-300">
                                         <p className="text-sm font-black truncate text-white uppercase">{user?.name}</p>
-                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">ADMINISTRATOR</p>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">{user?.role || 'STAFF'}</p>
                                     </div>
                                 )}
                             </div>
 
                             {!sidebarCollapsed && (
                                 <div className="flex gap-2 mt-5 animate-in fade-in duration-500">
-                                    <button className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-slate-800 border border-slate-700 transition-all hover:bg-slate-700 active:scale-95">
-                                        <Settings className="w-4 h-4 text-slate-400" />
-                                    </button>
                                     <button onClick={handleLogout} className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-slate-800 border border-slate-700 transition-all hover:bg-rose-500/10 hover:border-rose-500/20 group active:scale-95">
-                                        <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-500 transition-colors" />
+                                        <LogOut className="w-5 h-5 text-slate-400 group-hover:text-rose-500 transition-colors" />
+                                        <span className="ml-3 text-[11px] font-black uppercase text-slate-400 group-hover:text-rose-500 tracking-widest">ĐĂNG XUẤT</span>
                                     </button>
                                 </div>
                             )}
@@ -149,10 +151,6 @@ export default function MainLayout({ children, currentView, setCurrentView }: Ma
                     </div>
 
                     <div className="flex items-center gap-5">
-                        <button className="relative p-4 rounded-2xl bg-slate-800 shadow-sm border border-slate-800 hover:bg-slate-700 transition-all active:scale-95">
-                            <Bell className="w-5 h-5 text-slate-400" />
-                            <span className="absolute top-4 right-4 w-2.5 h-2.5 bg-rose-500 rounded-full border-[3px] border-slate-800 shadow-lg animate-pulse" />
-                        </button>
                         <div className="hidden md:flex items-center gap-4 bg-slate-800/80 p-2.5 pr-8 rounded-[28px] border border-slate-700 shadow-sm group hover:border-blue-500/30 transition-all cursor-pointer">
                             <div className="w-11 h-11 rounded-2xl bg-blue-600/20 flex items-center justify-center font-black text-blue-500 group-hover:scale-105 transition-transform">HQ</div>
                             <div className="flex flex-col">
@@ -176,8 +174,10 @@ export default function MainLayout({ children, currentView, setCurrentView }: Ma
                         <div className="relative w-85 bg-[#1E293B] shadow-2xl flex flex-col p-10 space-y-10 animate-in slide-in-from-left duration-500 border-r border-slate-800">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-[22px] bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-xl shadow-blue-500/20">C</div>
-                                    <span className="font-black uppercase tracking-tighter text-white text-xl">CAMRENT PRO</span>
+                                    <div className="w-12 h-12 rounded-full overflow-hidden shadow-xl shadow-blue-500/20">
+                                        <img src="/images/camerental.png" alt="Camerental Logo" className="w-full h-full object-cover" />
+                                    </div>
+                                    <span className="font-black uppercase tracking-tighter text-white text-xl">CAMERENTAL</span>
                                 </div>
                                 <button onClick={() => setMobileSidebarOpen(false)} className="p-3 rounded-2xl bg-slate-800 border border-slate-700 text-white"><X className="w-6 h-6" /></button>
                             </div>
