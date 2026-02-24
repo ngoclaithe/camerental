@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Calendar, Plus, FileText, BarChart3, Menu, X, Bell, Search, LogOut, Settings, User, Camera, Users, ChevronLeft, ChevronRight, UserCog, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Calendar, Plus, FileText, BarChart3, Menu, X, Bell, Search, LogOut, Settings, User, Camera, Users, ChevronLeft, ChevronRight, UserCog, BookOpen, GanttChartSquare } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { authApi } from '../../api';
 
@@ -37,6 +37,7 @@ export default function MainLayout({ children, currentView, setCurrentView }: Ma
     const allNavigation = [
         { id: 'dashboard', label: 'THỐNG KÊ', icon: LayoutDashboard, roles: ['ADMIN', 'MANAGER'] },
         { id: 'calendar', label: 'LỊCH THUÊ', icon: Calendar, roles: ['ADMIN', 'MANAGER', 'STAFF'] },
+        { id: 'gantt', label: 'GANTT CHART', icon: GanttChartSquare, roles: ['ADMIN', 'MANAGER', 'STAFF'] },
         { id: 'create', label: 'TẠO ĐƠN', icon: Plus, roles: ['ADMIN', 'MANAGER', 'STAFF'] },
         { id: 'orders', label: 'ĐƠN HÀNG', icon: FileText, roles: ['ADMIN', 'MANAGER', 'STAFF'] },
         { id: 'equipments', label: 'THIẾT BỊ', icon: Camera, roles: ['ADMIN', 'MANAGER'] },

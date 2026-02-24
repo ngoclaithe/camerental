@@ -11,9 +11,10 @@ import GuidesPage from './components/GuidesPage';
 import Reports from './components/Reports';
 import Login from './components/Login';
 import GuestPage from './components/GuestPage';
+import GanttChart from './components/GanttChart';
 import { useStore } from '../store/useStore';
 
-type View = 'dashboard' | 'calendar' | 'create' | 'orders' | 'equipments' | 'customers' | 'users' | 'reports' | 'guides';
+type View = 'dashboard' | 'calendar' | 'gantt' | 'create' | 'orders' | 'equipments' | 'customers' | 'users' | 'reports' | 'guides';
 
 export default function App() {
   const [showLogin, setShowLogin] = useState(false);
@@ -40,6 +41,7 @@ export default function App() {
     switch (currentView) {
       case 'dashboard': return <Dashboard />;
       case 'calendar': return <CalendarView />;
+      case 'gantt': return <GanttChart />;
       case 'create': return <CreateOrder setView={setCurrentView} />;
       case 'orders': return <OrdersList />;
       case 'equipments': return <EquipmentsPage />;
