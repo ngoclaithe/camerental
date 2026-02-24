@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Camera, FileText, BarChart3, Clock, ChevronRight, TrendingUp, Calendar as CalendarIcon, Filter, ArrowUpRight, Activity } from 'lucide-react';
 import { reportApi, orderApi } from '../../api';
+import { toast } from 'sonner';
 import dayjs from 'dayjs';
 
 export default function Dashboard() {
@@ -17,8 +18,11 @@ export default function Dashboard() {
         ]);
         setSummary(summaryData);
         setRecentOrders(ordersData.slice(0, 6));
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch dashboard data', error);
+        toast.error('Lỗi tải dữ liệu', {
+          description: error.response?.data?.message || 'Không thể đồng bộ dữ liệu Dashboard.'
+        });
       } finally {
         setLoading(false);
       }
@@ -52,9 +56,19 @@ export default function Dashboard() {
       'LATE': 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20',
       'COMPLETED': 'bg-slate-50 text-slate-600 border-slate-100 dark:bg-slate-500/10 dark:text-slate-400 dark:border-slate-500/20',
     };
+
+    const statusMap: Record<string, string> = {
+      'PENDING': 'CHỜ DUYỆT',
+      'CONFIRMED': 'ĐÃ XÁC NHẬN',
+      'RENTING': 'ĐANG THUÊ',
+      'LATE': 'TRỄ HẠN',
+      'COMPLETED': 'HOÀN TẤT',
+      'CANCELLED': 'ĐÃ HỦY'
+    };
+
     return (
       <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.1em] rounded-xl border ${styles[status] || styles['PENDING']}`}>
-        {status}
+        {statusMap[status] || status}
       </span>
     );
   };
@@ -80,10 +94,6 @@ export default function Dashboard() {
                 Hệ thống đã sẵn sàng. Có <span className="text-slate-900 dark:text-white underline decoration-blue-600 decoration-[6px] underline-offset-8 font-black">{summary?.activeOrders || 0} thiết bị</span> đang hoạt động.
               </p>
             </div>
-            <div className="flex flex-wrap gap-4 pt-6">
-              <button className="px-12 py-5 bg-blue-600 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.15em] shadow-2xl shadow-blue-500/40 hover:-translate-y-1 active:scale-95 transition-all duration-300">TẠO ĐƠN MỚI</button>
-              <button className="px-12 py-5 bg-white dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 text-slate-900 dark:text-white rounded-[24px] font-black text-xs uppercase tracking-[0.15em] hover:bg-slate-50 dark:hover:bg-slate-600/80 active:scale-95 transition-all duration-300">BÁO CÁO THÁNG</button>
-            </div>
           </div>
         </div>
 
@@ -92,16 +102,15 @@ export default function Dashboard() {
           <div className="relative z-10">
             <div className="p-4 bg-white/10 rounded-[22px] w-fit mb-10 border border-white/10"><TrendingUp className="w-7 h-7 text-blue-400" /></div>
             <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-white/40 mb-3">DOANH THU THÁNG</h4>
-            <p className="text-5xl font-black tracking-tighter leading-none mb-6">152,000,000 <span className="text-xs font-black opacity-30 tracking-[0.2em] ml-1">VNĐ</span></p>
+            <p className="text-4xl lg:text-5xl font-black tracking-tighter leading-none mb-6">{new Intl.NumberFormat('vi-VN').format(summary?.monthlyRevenue || 0)} <span className="text-xs font-black opacity-30 tracking-[0.2em] ml-1">VNĐ</span></p>
             <div className="mt-10 h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
-              <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]" style={{ width: '68%' }} />
+              <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]" style={{ width: `${Math.min(100, Math.floor(((summary?.monthlyRevenue || 0) / 100000000) * 100))}%` }} />
             </div>
             <div className="flex justify-between mt-5">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Tiến độ mục tiêu</span>
-              <span className="text-[10px] font-black uppercase text-blue-400">68.4%</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Tiến độ mục tiêu 100Tr</span>
+              <span className="text-[10px] font-black uppercase text-blue-400">{Math.min(100, Math.floor(((summary?.monthlyRevenue || 0) / 100000000) * 100))}%</span>
             </div>
           </div>
-          <button className="relative z-10 w-full py-5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all mt-12 backdrop-blur-sm">CHI TIẾT TÀI CHÍNH</button>
         </div>
       </div>
 

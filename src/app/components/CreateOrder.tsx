@@ -1,14 +1,25 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Check, Search, User, Camera, Calendar as CalendarIcon, CreditCard, ShoppingBag } from 'lucide-react';
-import { customerApi, equipmentApi, orderApi } from '../../api';
+import { ChevronLeft, ChevronRight, Check, Search, User, Camera, Calendar as CalendarIcon, CreditCard, ShoppingBag, AlertCircle } from 'lucide-react';
+import { customerApi, equipmentApi, orderApi, calendarApi } from '../../api';
+import { useStore } from '../../store/useStore';
+import { toast } from 'sonner';
 import dayjs from 'dayjs';
 
-export default function CreateOrder() {
+export default function CreateOrder({ setView }: { setView?: (view: any) => void }) {
+  const user = useStore(state => state.user);
   const [step, setStep] = useState(1);
   const [customers, setCustomers] = useState<any[]>([]);
   const [equipments, setEquipments] = useState<any[]>([]);
   const [searchCustomer, setSearchCustomer] = useState('');
+  const [searchEquipment, setSearchEquipment] = useState('');
   const [loading, setLoading] = useState(false);
+  const [calendarData, setCalendarData] = useState<any[]>([]);
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [newCustomerData, setNewCustomerData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+  });
 
   const [formData, setFormData] = useState({
     customerId: '',
@@ -29,9 +40,21 @@ export default function CreateOrder() {
     if (step === 1) {
       customerApi.findAll().then(setCustomers);
     } else if (step === 2) {
-      equipmentApi.findAll().then(data => setEquipments(data.filter((e: any) => e.status === 'AVAILABLE')));
+      equipmentApi.findAll().then(data => setEquipments(data.filter((e: any) => e.status !== 'MAINTENANCE')));
     }
   }, [step]);
+
+  useEffect(() => {
+    if (step === 2 && formData.equipmentIds.length > 0) {
+      const start = dayjs().startOf('day').toISOString();
+      const end = dayjs().add(60, 'day').endOf('day').toISOString();
+      calendarApi.get(start, end).then(data => {
+        setCalendarData(data);
+      }).catch(console.error);
+    } else {
+      setCalendarData([]);
+    }
+  }, [step, formData.equipmentIds]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
@@ -41,7 +64,19 @@ export default function CreateOrder() {
   const prevStep = () => step > 1 && setStep(step - 1);
 
   const selectCustomer = (customer: any) => {
+    setIsNewCustomer(false);
     setFormData({ ...formData, customerId: customer.id, customerName: customer.name });
+    nextStep();
+  };
+
+  const handleCreateNewCustomerNext = () => {
+    if (!newCustomerData.name || !newCustomerData.phone) {
+      toast.error("Thiếu thông tin khánh hàng", {
+        description: "Vui lòng nhập tên và số điện thoại khách hàng mới."
+      });
+      return;
+    }
+    setFormData({ ...formData, customerId: 'NEW', customerName: newCustomerData.name });
     nextStep();
   };
 
@@ -64,19 +99,34 @@ export default function CreateOrder() {
   };
 
   const updateDates = (start: string, end: string) => {
-    if (!start || !end) return;
-    const s = dayjs(start);
-    const e = dayjs(end);
-    const days = e.diff(s, 'day') || 1;
-    const totalAmount = (formData.pricePerDay * days) - formData.discount;
-    setFormData({ ...formData, startDate: start, endDate: end, days, totalAmount });
+    let d = 0;
+    if (start && end) {
+      const s = dayjs(start);
+      const e = dayjs(end);
+      d = e.diff(s, 'day') || 1;
+      if (d < 1) d = 1;
+    }
+    const totalAmount = (formData.pricePerDay * d) - formData.discount;
+    setFormData({ ...formData, startDate: start, endDate: end, days: d, totalAmount });
   };
 
   const handleSubmit = async () => {
     try {
       setLoading(true);
+      let customerIdToUse = formData.customerId;
+
+      if (isNewCustomer && customerIdToUse === 'NEW') {
+        const newCustomer = await customerApi.create({
+          name: newCustomerData.name,
+          phone: newCustomerData.phone,
+          email: newCustomerData.email,
+        });
+        customerIdToUse = newCustomer.id;
+      }
+
       await orderApi.create({
-        customerId: formData.customerId,
+        customerId: customerIdToUse,
+        staffId: user?.id,
         equipmentIds: formData.equipmentIds,
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
@@ -87,11 +137,25 @@ export default function CreateOrder() {
         totalAmount: formData.totalAmount,
         note: formData.note,
       });
-      alert('Đơn thuê đã được tạo thành công!');
-      window.location.reload();
+      toast.success('Đơn thuê đã được tạo thành công!', {
+        description: 'Bạn có thể xem đơn trong phần Quản lý đơn.'
+      });
+      // Reset form or handle navigation appropriately here, but do not reload window
+      setStep(1);
+      setFormData({
+        customerId: '', customerName: '', equipmentIds: [], equipmentNames: [],
+        startDate: '', endDate: '', days: 0, pricePerDay: 0, deposit: 0, discount: 0, totalAmount: 0, note: ''
+      });
+      setIsNewCustomer(false);
+      setNewCustomerData({ name: '', phone: '', email: '' });
+      setSearchCustomer('');
+      setSearchEquipment('');
+      if (setView) setView('orders');
     } catch (error: any) {
       console.error(error);
-      alert('Lỗi: ' + (error.response?.data?.message || 'Không thể tạo đơn hàng'));
+      toast.error('Không thể tạo đơn hàng', {
+        description: error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại sau.'
+      });
     } finally {
       setLoading(false);
     }
@@ -102,12 +166,34 @@ export default function CreateOrder() {
     c.phone.includes(searchCustomer)
   );
 
+  const filteredEquipments = equipments.filter(eq =>
+    eq.name.toLowerCase().includes(searchEquipment.toLowerCase()) ||
+    eq.serialNumber?.toLowerCase().includes(searchEquipment.toLowerCase())
+  );
+
   const steps = [
     { title: 'KHÁCH HÀNG', icon: User },
     { title: 'THIẾT BỊ', icon: Camera },
     { title: 'THANH TOÁN', icon: CreditCard },
     { title: 'XÁC NHẬN', icon: ShoppingBag },
   ];
+
+  const selectedEquipmentsCalendar = calendarData.filter(eq => formData.equipmentIds.includes(eq.equipmentId));
+  const busyBookings = selectedEquipmentsCalendar.flatMap(eq => eq.bookings.map((b: any) => ({
+    ...b,
+    equipmentName: eq.equipmentName
+  })));
+
+  const hasDateConflict = busyBookings.some((b: any) => {
+    if (!formData.startDate || !formData.endDate) return false;
+    const bStart = dayjs(b.startDate).startOf('day');
+    const bEnd = dayjs(b.endDate).endOf('day');
+    const searchStart = dayjs(formData.startDate).startOf('day');
+    const searchEnd = dayjs(formData.endDate).endOf('day');
+
+    return (searchStart.isBefore(bEnd) || searchStart.isSame(bEnd)) &&
+      (searchEnd.isAfter(bStart) || searchEnd.isSame(bStart));
+  });
 
   return (
     <div className="space-y-12 animate-in fade-in duration-700 pb-20 lg:pb-0">
@@ -148,33 +234,67 @@ export default function CreateOrder() {
               <p className="text-sm font-black text-slate-400 uppercase tracking-widest opacity-70">Tìm kiếm từ danh sách hội viên hệ thống</p>
             </div>
 
-            <div className="relative max-w-2xl mx-auto group">
-              <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-blue-600 transition-all" />
-              <input
-                type="text"
-                placeholder="TÊN KHÁCH, SỐ ĐIỆN THOẠI..."
-                value={searchCustomer}
-                onChange={(e) => setSearchCustomer(e.target.value)}
-                className="w-full pl-18 pr-10 py-6 bg-white dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-[32px] focus:border-blue-600 transition-all font-black text-xl shadow-sm uppercase tracking-tighter"
-              />
+            <div className="flex gap-4 justify-center mb-8">
+              <button
+                onClick={() => setIsNewCustomer(false)}
+                className={`px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-all ${!isNewCustomer ? 'bg-blue-600 text-white shadow-xl' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              >
+                TỪ DANH SÁCH
+              </button>
+              <button
+                onClick={() => setIsNewCustomer(true)}
+                className={`px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-all ${isNewCustomer ? 'bg-emerald-600 text-white shadow-xl' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+              >
+                KHÁCH HÀNG MỚI
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCustomers.map(c => (
-                <button
-                  key={c.id}
-                  onClick={() => selectCustomer(c)}
-                  className={`p-10 rounded-[44px] border-2 text-left transition-all duration-500 group relative overflow-hidden ${formData.customerId === c.id ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/10 shadow-2xl shadow-blue-500/5' : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-blue-200 dark:hover:border-blue-900'
-                    }`}
-                >
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${formData.customerId === c.id ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
-                    <User className="w-7 h-7" />
-                  </div>
-                  <p className="text-xl font-black text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors uppercase tracking-tight">{c.name}</p>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2">{c.phone}</p>
-                </button>
-              ))}
-            </div>
+            {!isNewCustomer ? (
+              <>
+                <div className="relative max-w-2xl mx-auto group">
+                  <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-blue-600 transition-all pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="TÊN KHÁCH, SỐ ĐIỆN THOẠI..."
+                    value={searchCustomer}
+                    onChange={(e) => setSearchCustomer(e.target.value)}
+                    className="w-full pl-18 pr-10 py-6 bg-white dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-[32px] focus:border-blue-600 transition-all font-black text-xl shadow-sm uppercase tracking-tighter"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredCustomers.map(c => (
+                    <button
+                      key={c.id}
+                      onClick={() => selectCustomer(c)}
+                      className={`p-10 rounded-[44px] border-2 text-left transition-all duration-500 group relative overflow-hidden ${formData.customerId === c.id && !isNewCustomer ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/10 shadow-2xl shadow-blue-500/5' : 'border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-800 hover:border-blue-200 dark:hover:border-blue-900'
+                        }`}
+                    >
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${formData.customerId === c.id && !isNewCustomer ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
+                        <User className="w-7 h-7" />
+                      </div>
+                      <p className="text-xl font-black text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors uppercase tracking-tight">{c.name}</p>
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2">{c.phone}</p>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="max-w-2xl mx-auto bg-white dark:bg-slate-800 p-10 lg:p-12 rounded-[48px] border border-slate-100 dark:border-slate-700 shadow-sm space-y-8 animate-in zoom-in-95 duration-500">
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Họ tên khách hàng</label>
+                  <input type="text" value={newCustomerData.name} onChange={e => setNewCustomerData({ ...newCustomerData, name: e.target.value })} className="w-full px-8 py-6 bg-slate-50 dark:bg-slate-900 border-none rounded-[28px] font-black text-xl uppercase tracking-tighter" placeholder="VD: NGUYỄN VĂN B" />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Số điện thoại</label>
+                  <input type="text" value={newCustomerData.phone} onChange={e => setNewCustomerData({ ...newCustomerData, phone: e.target.value })} className="w-full px-8 py-6 bg-slate-50 dark:bg-slate-900 border-none rounded-[28px] font-black text-xl tracking-widest placeholder:tracking-normal" placeholder="090..." />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 ml-1">Email (Tùy chọn)</label>
+                  <input type="email" value={newCustomerData.email} onChange={e => setNewCustomerData({ ...newCustomerData, email: e.target.value })} className="w-full px-8 py-6 bg-slate-50 dark:bg-slate-900 border-none rounded-[28px] font-black text-xl tracking-tight" placeholder="client@example.com" />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -183,9 +303,22 @@ export default function CreateOrder() {
           <div className="space-y-12 animate-in slide-in-from-right-10 duration-1000">
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
               <div className="xl:col-span-2 space-y-8">
-                <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">THIẾT BỊ SẴN SÀNG</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {equipments.map(eq => (
+                <div className="flex flex-col sm:flex-row gap-6 justify-between items-center bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-700">
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter ml-4">THIẾT BỊ SẴN SÀNG</h3>
+                  <div className="relative w-full sm:w-auto min-w-[300px] group">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-600 transition-all pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Tìm TÊN MÁY hoặc SERIAL..."
+                      value={searchEquipment}
+                      onChange={(e) => setSearchEquipment(e.target.value)}
+                      className="w-full pl-16 pr-8 py-5 bg-slate-50 dark:bg-slate-900 border-none rounded-2xl font-black text-sm uppercase tracking-tighter"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-h-[600px] overflow-y-auto pr-2 pb-2">
+                  {filteredEquipments.map(eq => (
                     <button
                       key={eq.id}
                       onClick={() => toggleEquipment(eq)}
@@ -193,13 +326,17 @@ export default function CreateOrder() {
                         }`}
                     >
                       <div className={`p-5 rounded-2xl transition-all duration-500 ${formData.equipmentIds.includes(eq.id) ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
-                        <Camera className="w-7 h-7" />
+                        {eq.imageUrls?.[0] ? (
+                          <img src={eq.imageUrls[0]} alt={eq.name} className="w-7 h-7 object-cover rounded-lg" />
+                        ) : (
+                          <Camera className="w-7 h-7" />
+                        )}
                       </div>
                       <div className="flex-1">
-                        <p className="text-lg font-black text-slate-900 dark:text-white uppercase leading-tight">{eq.name}</p>
+                        <p className="text-lg font-black text-slate-900 dark:text-white uppercase leading-tight line-clamp-1">{eq.name}</p>
                         <p className="text-sm font-black text-blue-600 dark:text-blue-400 mt-1 uppercase tracking-tighter">{formatCurrency(eq.pricePerDay)}<span className="text-[10px] text-slate-400 opacity-60 ml-1">/NGÀY</span></p>
                       </div>
-                      {formData.equipmentIds.includes(eq.id) && <Check className="w-7 h-7 text-blue-600" />}
+                      {formData.equipmentIds.includes(eq.id) && <Check className="w-7 h-7 text-blue-600 shrink-0" />}
                     </button>
                   ))}
                 </div>
@@ -211,15 +348,15 @@ export default function CreateOrder() {
                   <div className="space-y-3">
                     <label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">NGÀY BẮT ĐẦU</label>
                     <div className="relative">
-                      <CalendarIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                      <input type="date" value={formData.startDate} onChange={e => updateDates(e.target.value, formData.endDate)} className="w-full pl-16 pr-6 py-5 bg-slate-50 dark:bg-slate-900 border-none rounded-[22px] font-black uppercase text-sm" />
+                      <CalendarIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
+                      <input type="date" value={formData.startDate} onChange={e => updateDates(e.target.value, formData.endDate)} className="w-full pl-16 pr-6 py-5 bg-slate-50 dark:bg-slate-900 border-none rounded-[22px] font-bold text-sm dark:[color-scheme:dark]" />
                     </div>
                   </div>
                   <div className="space-y-3">
                     <label className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">NGÀY KẾT THÚC</label>
                     <div className="relative">
-                      <CalendarIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                      <input type="date" value={formData.endDate} onChange={e => updateDates(formData.startDate, e.target.value)} className="w-full pl-16 pr-6 py-5 bg-slate-50 dark:bg-slate-900 border-none rounded-[22px] font-black uppercase text-sm" />
+                      <CalendarIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
+                      <input type="date" value={formData.endDate} onChange={e => updateDates(formData.startDate, e.target.value)} className="w-full pl-16 pr-6 py-5 bg-slate-50 dark:bg-slate-900 border-none rounded-[22px] font-bold text-sm dark:[color-scheme:dark]" />
                     </div>
                   </div>
                   <div className="pt-8 border-t border-slate-50 dark:border-slate-700 text-center">
@@ -227,6 +364,32 @@ export default function CreateOrder() {
                     <span className="text-5xl font-black text-blue-600 dark:text-blue-400 tracking-tighter">{formData.days}</span>
                     <span className="ml-3 text-xs font-black uppercase tracking-widest text-slate-400 opacity-60">NGÀY</span>
                   </div>
+
+                  {busyBookings.length > 0 && (
+                    <div className="pt-6 border-t border-slate-50 dark:border-slate-700 animate-in slide-in-from-top-4 duration-500">
+                      <p className={`text-[11px] font-black uppercase tracking-[0.2em] mb-4 ml-1 flex items-center gap-2 ${hasDateConflict ? 'text-rose-500' : 'text-amber-500'}`}>
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" /> {hasDateConflict ? 'LỖI ĐỤNG LỊCH: VUI LÒNG ĐỔI NGÀY THUÊ HOẶC THIẾT BỊ' : 'THIẾT BỊ ĐÃ KÍN LỊCH VÀO CÁC NGÀY'}
+                      </p>
+                      <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                        {busyBookings.map((b, i) => {
+                          const bStart = dayjs(b.startDate).startOf('day');
+                          const bEnd = dayjs(b.endDate).endOf('day');
+                          const searchStart = formData.startDate ? dayjs(formData.startDate).startOf('day') : null;
+                          const searchEnd = formData.endDate ? dayjs(formData.endDate).endOf('day') : null;
+                          const isConflict = searchStart && searchEnd && (searchStart.isBefore(bEnd) || searchStart.isSame(bEnd)) && (searchEnd.isAfter(bStart) || searchEnd.isSame(bStart));
+
+                          return (
+                            <div key={i} className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-[20px] text-xs font-black transition-colors ${isConflict ? 'bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 shadow-sm animate-pulse' : 'bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 text-amber-600 dark:text-amber-400'}`}>
+                              <span className="uppercase tracking-tighter truncate max-w-[200px]" title={b.equipmentName}>{b.equipmentName}</span>
+                              <span className={`tracking-widest mt-2 sm:mt-0 p-1.5 px-3 rounded-xl shadow-sm border ${isConflict ? 'bg-white dark:bg-rose-900/40 border-rose-200 dark:border-rose-700/30' : 'bg-white dark:bg-amber-900/40 border-amber-100 dark:border-amber-700/30'}`}>
+                                {dayjs(b.startDate).format('DD/MM')} → {dayjs(b.endDate).format('DD/MM')}
+                              </span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -344,8 +507,8 @@ export default function CreateOrder() {
           )}
           {step < 4 ? (
             <button
-              onClick={nextStep}
-              disabled={!formData.customerId || (step === 2 && (formData.equipmentIds.length === 0 || !formData.startDate || !formData.endDate))}
+              onClick={step === 1 && isNewCustomer ? handleCreateNewCustomerNext : nextStep}
+              disabled={(step === 1 && !isNewCustomer && !formData.customerId) || (step === 2 && (formData.equipmentIds.length === 0 || !formData.startDate || !formData.endDate || hasDateConflict))}
               className="flex-1 py-6 bg-blue-600 text-white rounded-[28px] font-black uppercase tracking-[0.2em] text-xs shadow-2xl shadow-blue-500/40 disabled:opacity-30 disabled:grayscale transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3"
             >
               TIẾP TỤC <ChevronRight className="w-5 h-5 stroke-[3]" />

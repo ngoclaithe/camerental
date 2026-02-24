@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Calendar, Plus, FileText, BarChart3, Menu, X, Bell, Search, LogOut, Settings, User, Camera, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Calendar, Plus, FileText, BarChart3, Menu, X, Bell, Search, LogOut, Settings, User, Camera, Users, ChevronLeft, ChevronRight, UserCog, BookOpen } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { authApi } from '../../api';
 
@@ -41,7 +41,9 @@ export default function MainLayout({ children, currentView, setCurrentView }: Ma
         { id: 'orders', label: 'ĐƠN HÀNG', icon: FileText },
         { id: 'equipments', label: 'THIẾT BỊ', icon: Camera },
         { id: 'customers', label: 'KHÁCH HÀNG', icon: Users },
+        { id: 'users', label: 'TÀI KHOẢN', icon: UserCog },
         { id: 'reports', label: 'BÁO CÁO', icon: BarChart3 },
+        { id: 'guides', label: 'HƯỚNG DẪN', icon: BookOpen },
     ];
 
     return (

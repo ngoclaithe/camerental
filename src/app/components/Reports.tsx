@@ -25,15 +25,7 @@ export default function Reports() {
     </div>
   );
 
-  const revenueData = [
-    { date: '17/02', revenue: 1200000, orders: 4 },
-    { date: '18/02', revenue: 1900000, orders: 7 },
-    { date: '19/02', revenue: 1500000, orders: 5 },
-    { date: '20/02', revenue: 2200000, orders: 8 },
-    { date: '21/02', revenue: 3000000, orders: 12 },
-    { date: '22/02', revenue: 2500000, orders: 9 },
-    { date: 'Hôm nay', revenue: summary.todayRevenue, orders: summary.activeOrders },
-  ];
+  const revenueData = summary?.chartData || [];
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 pb-20 lg:pb-0">
@@ -122,17 +114,17 @@ export default function Reports() {
           <div className="relative z-10 flex flex-col h-full justify-between gap-16">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-[22px] bg-white/10 flex items-center justify-center border border-white/5 shadow-xl"><Target className="w-6 h-6" /></div>
-              <h4 className="text-[12px] font-black uppercase tracking-[0.4em] text-white/40">MỤC TIÊU DOANH THU THÁNG 03</h4>
+              <h4 className="text-[12px] font-black uppercase tracking-[0.4em] text-white/40">MỤC TIÊU DOANH THU THÁNG TỚI</h4>
             </div>
             <div>
-              <p className="text-6xl font-black tracking-tighter leading-none mb-10">152M <span className="text-sm font-black opacity-30 tracking-[0.3em] ml-2">VNĐ</span></p>
+              <p className="text-4xl lg:text-5xl xl:text-6xl font-black tracking-tighter leading-none mb-10">{new Intl.NumberFormat('vi-VN').format(summary?.monthlyRevenue || 0)} <span className="text-sm font-black opacity-30 tracking-[0.3em] ml-2">VNĐ</span></p>
               <div className="space-y-6">
                 <div className="flex justify-between text-[11px] font-black uppercase tracking-[0.3em] text-white/50">
                   <span>Tiến độ hiện tại</span>
-                  <span className="text-blue-400">68.4%</span>
+                  <span className="text-blue-400">{Math.min(100, Math.floor(((summary?.monthlyRevenue || 0) / 100000000) * 100))}%</span>
                 </div>
                 <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
-                  <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.6)]" style={{ width: '68%' }} />
+                  <div className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full shadow-[0_0_15px_rgba(37,99,235,0.6)]" style={{ width: `${Math.min(100, Math.floor(((summary?.monthlyRevenue || 0) / 100000000) * 100))}%` }} />
                 </div>
               </div>
             </div>

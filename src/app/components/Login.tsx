@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LogIn, Key, Mail, Camera, ShieldCheck, ArrowRight, Check } from 'lucide-react';
 import { authApi } from '../../api';
 import { useStore } from '../../store/useStore';
+import { toast } from 'sonner';
 
 export default function Login() {
     const [email, setEmail] = useState('admin@camrent.pro');
@@ -17,8 +18,15 @@ export default function Login() {
         try {
             const response = await authApi.login(email, password);
             setUser(response.user);
+            toast.success('Đăng nhập thành công', {
+                description: 'Chào mừng trở lại bảng điều khiển.',
+            });
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.');
+            const errorMsg = err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.';
+            setError(errorMsg);
+            toast.error('Lỗi xác thực', {
+                description: errorMsg,
+            });
         } finally {
             setLoading(false);
         }

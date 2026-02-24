@@ -25,6 +25,11 @@ export const customerApi = {
     update: (id: string, data: any) => api.patch(`/customers/${id}`, data).then((res: AxiosResponse) => res.data),
 };
 
+export const userApi = {
+    findAll: () => api.get('/users').then((res: AxiosResponse) => res.data),
+    create: (data: any) => api.post('/users', data).then((res: AxiosResponse) => res.data),
+};
+
 export const orderApi = {
     findAll: () => api.get('/orders').then((res: AxiosResponse) => res.data),
     create: (data: any) => api.post('/orders', data).then((res: AxiosResponse) => res.data),
@@ -37,6 +42,21 @@ export const calendarApi = {
 
 export const reportApi = {
     getSummary: () => api.get('/reports/summary').then((res: AxiosResponse) => res.data),
+};
+
+export const uploadApi = {
+    uploadImage: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', (import.meta as any).env.VITE_CLOUDINARY_PRESET_NAME);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${(import.meta as any).env.VITE_CLOUDINARY_NAME}/image/upload`, {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await res.json();
+        return data;
+    }
 };
 
 export default api;
