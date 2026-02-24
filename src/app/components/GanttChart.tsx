@@ -61,10 +61,10 @@ export default function GanttChart() {
     return (
         <div className="space-y-8 pb-24 lg:pb-0 animate-in fade-in slide-in-from-bottom-6 duration-1000">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6 md:mb-8">
                 <div>
                     <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">BIỂU ĐỒ GANTT</h2>
-                    <p className="text-sm font-black text-slate-400 uppercase tracking-widest mt-4 opacity-70">Tổng quan lịch sử dụng thiết bị (Theo tháng)</p>
+                    <p className="text-sm font-black text-slate-400 uppercase tracking-widest mt-4 opacity-70">Tổng quan lịch sử dụng camera (Theo tháng)</p>
                 </div>
                 <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-[22px] border border-slate-100 dark:border-slate-700 shadow-sm w-fit">
                     <button onClick={prevMonth} className="p-3 bg-slate-50 dark:bg-slate-900 text-slate-500 rounded-xl hover:bg-blue-500 hover:text-white transition-colors">
@@ -83,21 +83,21 @@ export default function GanttChart() {
             </div>
 
             {/* Gantt Chart Content */}
-            <div className="bg-white dark:bg-slate-800 rounded-[40px] border border-slate-100 dark:border-slate-700 shadow-sm p-8 overflow-hidden">
-                <div className="overflow-x-auto hide-scrollbar border border-slate-100 dark:border-slate-700 rounded-3xl pb-2">
+            <div className="bg-white dark:bg-slate-800 rounded-[24px] md:rounded-[40px] border border-slate-100 dark:border-slate-700 shadow-sm p-4 md:p-8 overflow-hidden">
+                <div className="overflow-x-auto hide-scrollbar border border-slate-100 dark:border-slate-700 rounded-2xl md:rounded-3xl pb-2">
                     <div className="min-w-max relative">
                         {/* Header Row (Days) */}
                         <div className="flex border-b border-slate-100 dark:border-slate-700 sticky top-0 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md z-20">
-                            <div className="w-[300px] flex-shrink-0 p-6 border-r border-slate-100 dark:border-slate-700 flex items-center bg-white dark:bg-slate-800 sticky left-0 z-30">
-                                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">THIẾT BỊ</span>
+                            <div className="w-[100px] md:w-[300px] flex-shrink-0 p-3 md:p-6 border-r border-slate-100 dark:border-slate-700 flex items-center bg-white dark:bg-slate-800 sticky left-0 z-30">
+                                <span className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">THIẾT BỊ</span>
                             </div>
                             <div className="flex flex-1">
                                 {days.map((day) => {
                                     const isToday = day.isSame(dayjs(), 'day');
                                     return (
-                                        <div key={day.toISOString()} className={`flex-1 min-w-[48px] p-4 border-r border-slate-100/50 dark:border-slate-700/50 flex flex-col items-center justify-center ${isToday ? 'bg-blue-50/50 dark:bg-blue-500/10' : ''}`}>
-                                            <span className={`text-[10px] font-black uppercase ${isToday ? 'text-blue-600' : 'text-slate-400'}`}>{day.format('dd').charAt(0)}</span>
-                                            <span className={`text-sm font-black mt-1 ${isToday ? 'text-blue-600' : 'text-slate-900 dark:text-white'}`}>{day.format('D')}</span>
+                                        <div key={day.toISOString()} className={`flex-1 min-w-[36px] md:min-w-[48px] p-2 md:p-4 border-r border-slate-100/50 dark:border-slate-700/50 flex flex-col items-center justify-center ${isToday ? 'bg-blue-50/50 dark:bg-blue-500/10' : ''}`}>
+                                            <span className={`text-[8px] md:text-[10px] font-black uppercase ${isToday ? 'text-blue-600' : 'text-slate-400'}`}>{day.format('dd').charAt(0)}</span>
+                                            <span className={`text-xs md:text-sm font-black mt-1 ${isToday ? 'text-blue-600' : 'text-slate-900 dark:text-white'}`}>{day.format('D')}</span>
                                         </div>
                                     );
                                 })}
@@ -108,16 +108,16 @@ export default function GanttChart() {
                         <div className="divide-y divide-slate-100 dark:divide-slate-700">
                             {calendarData.map((equipment) => (
                                 <div key={equipment.equipmentId} className="flex group hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors">
-                                    <div className="w-[300px] flex-shrink-0 p-6 border-r border-slate-100 dark:border-slate-700 flex flex-col justify-center bg-white dark:bg-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors sticky left-0 z-10 shadow-[10px_0_15px_-10px_rgba(0,0,0,0.1)] dark:shadow-[10px_0_15px_-10px_rgba(0,0,0,0.5)]">
-                                        <span className="text-[12px] font-black text-slate-900 dark:text-white uppercase leading-tight truncate" title={equipment.equipmentName}>{equipment.equipmentName}</span>
-                                        <span className="text-[9px] font-black text-blue-500 tracking-[0.2em] uppercase mt-1">ID: {equipment.equipmentId.split('-')[0]}</span>
+                                    <div className="w-[100px] md:w-[300px] flex-shrink-0 p-3 md:p-6 border-r border-slate-100 dark:border-slate-700 flex flex-col justify-center bg-white dark:bg-slate-800 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors sticky left-0 z-10 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.1)] md:shadow-[10px_0_15px_-10px_rgba(0,0,0,0.1)] dark:shadow-[5px_0_10px_-5px_rgba(0,0,0,0.5)] md:dark:shadow-[10px_0_15px_-10px_rgba(0,0,0,0.5)]">
+                                        <span className="text-[9px] md:text-[12px] font-black text-slate-900 dark:text-white uppercase leading-tight truncate" title={equipment.equipmentName}>{equipment.equipmentName}</span>
+                                        <span className="text-[7px] md:text-[9px] font-black text-blue-500 tracking-[0.1em] md:tracking-[0.2em] uppercase mt-0.5 md:mt-1 truncate">ID: {equipment.equipmentId.split('-')[0]}</span>
                                     </div>
-                                    <div className="flex flex-1 relative min-h-[80px]">
+                                    <div className="flex flex-1 relative min-h-[50px] md:min-h-[80px]">
                                         {/* Background Grid */}
                                         <div className="absolute inset-0 flex">
                                             {days.map((day) => {
                                                 const isToday = day.isSame(dayjs(), 'day');
-                                                return <div key={day.toISOString()} className={`flex-1 min-w-[48px] border-r border-slate-100/50 dark:border-slate-700/50 ${isToday ? 'bg-blue-50/30 dark:bg-blue-500/5' : ''}`} />;
+                                                return <div key={day.toISOString()} className={`flex-1 min-w-[36px] md:min-w-[48px] border-r border-slate-100/50 dark:border-slate-700/50 ${isToday ? 'bg-blue-50/30 dark:bg-blue-500/5' : ''}`} />;
                                             })}
                                         </div>
 
@@ -139,14 +139,14 @@ export default function GanttChart() {
                                             return (
                                                 <div
                                                     key={booking.orderId}
-                                                    className={`absolute top-1/2 -translate-y-1/2 h-10 rounded-xl flex items-center px-4 ${getStatusColor(booking.status)} overflow-hidden group/booking cursor-pointer shadow-lg border text-white transition-transform hover:scale-[1.02] hover:-translate-y-[calc(50%+2px)] z-20`}
+                                                    className={`absolute top-1/2 -translate-y-1/2 h-6 md:h-10 rounded-md md:rounded-xl flex items-center px-2 md:px-4 ${getStatusColor(booking.status)} overflow-hidden group/booking cursor-pointer shadow-lg border text-white transition-transform hover:scale-[1.02] hover:-translate-y-[calc(50%+2px)] z-20`}
                                                     style={{
                                                         left: `calc((${startOffsetDays} / ${daysInMonth}) * 100% + 4px)`,
                                                         width: `calc((${durationDays} / ${daysInMonth}) * 100% - 8px)`
                                                     }}
                                                     title={`${booking.customerName} (${dayjs(booking.startDate).format('DD/MM')} - ${dayjs(booking.endDate).format('DD/MM')})`}
                                                 >
-                                                    <span className="text-[10px] font-black uppercase truncate racking-widest opacity-90">{booking.customerName}</span>
+                                                    <span className="text-[8px] md:text-[10px] font-black uppercase truncate tracking-widest opacity-90">{booking.customerName}</span>
                                                 </div>
                                             );
                                         })}
