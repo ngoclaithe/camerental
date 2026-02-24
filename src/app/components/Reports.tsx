@@ -36,11 +36,6 @@ export default function Reports() {
           <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">Báo cáo & Thống kê</h2>
           <p className="text-sm font-black text-slate-400 uppercase tracking-widest mt-4 opacity-70">Phân tích hiệu suất kinh doanh và dòng tiền thời gian thực</p>
         </div>
-        <div className="flex bg-white dark:bg-slate-800 p-2 rounded-[22px] border border-slate-100 dark:border-slate-700 shadow-sm">
-          {['TÀI CHÍNH', 'THUÊ MÁY', 'TỔNG QUAN'].map((t, i) => (
-            <button key={i} className={`px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${i === 0 ? 'bg-slate-900 dark:bg-slate-700 text-white shadow-xl translate-y-0' : 'text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>{t}</button>
-          ))}
-        </div>
       </div>
 
       {/* KPI Grid */}
